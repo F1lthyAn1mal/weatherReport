@@ -1,0 +1,45 @@
+{
+  "coord": {
+    "lon": 1.088,
+    "lat": 50.8198
+  },
+  "weather": [
+    {
+      "id": 804,
+      "main": "Clouds",
+      "description": "overcast clouds",
+      "icon": "04n"
+    }
+  ],
+  "base": "stations",
+  "main": {
+    "temp": 9.01,
+    "feels_like": 4.62,
+    "temp_min": 9.01,
+    "temp_max": 9.01,
+    "pressure": 1010,
+    "humidity": 93,
+    "sea_level": 1010,
+    "grnd_level": 1010
+  },
+  "visibility": 10000,
+  "wind": {
+    "speed": 11.32,
+    "deg": 200
+  },
+  "clouds": {
+    "all": 100
+  },
+  "dt": 1772253146,
+  "sys": {
+    "type": 1,
+    "id": 1420,
+    "country": "GB",
+    "sunrise": 1772260962,
+    "sunset": 1772300045
+  },
+  "timezone": 0,
+  "id": 2643327,
+  "name": "Lydd",
+  "cod": 200
+}

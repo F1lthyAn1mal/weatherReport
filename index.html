@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+        <link rel="stylesheet" href="style.css"/>
+        <style>#map { height: 500px; }</style>
+        <title>Weather Report</title>
+    </head>
+
+
+    <body>
+        <div class="card">
+            <div class="search">
+                <input id="cityInput" type="text" placeholder="Search for a city">
+                <button id="search"><img src="images/search.png"></button>
+                <button id="getLocation">Use my location</button>
+            </div>
+        </div>
+
+        <div class="weather">
+            <div class="weather-header">
+                <h1 id="cityName">City</h1>
+                <img id="weatherIcon" src="https://openweathermap.org/payload/api/media/file/10d@2x.png">
+                <h2 id="weatherDesc">Clear</h2>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card"><span class="label">Temperature</span><span id="temp">22°C</span></div>
+                <div class="stat-card"><span class="label">Feels Like</span><span id="feelsLike">19°C</span></div>
+                <div class="stat-card"><span class="label">Wind</span><span id="wind">9 m/s WNW</span></div>
+                <div class="stat-card"><span class="label">Humidity</span><span id="humidity">96%</span></div>
+                <div class="stat-card"><span class="label">Visibility</span><span id="visibility">10Km</span></div>
+                <div class="stat-card"><span class="label">Pressure</span><span id="pressure">1000 hPa</span></div>
+                <div class="stat-card"><span class="label">Sunrise</span><span id="sunrise">placeholder</span></div>
+                <div class="stat-card"><span class="label">Sunset</span><span id="sunset">placeholder</span></div>
+            </div>
+        </div>
+
+        <div class="layerDD">
+            <label for="layerSelect">Choose a map layer:</label>
+
+            <select name="layers" id="layerSelect">
+                <option value="precipitation">Precipitation</option>
+                <option value="clouds">Cloud Cover</option>
+                <option value="pressure">Pressure</option>
+                <option value="windSpeed">Wind Speed</option>
+                <option value="temp">Temperature</option>
+            </select>
+        </div>
+
+        <div id="map"></div>
+
+
+<!--         <div class="weatherMap">
+            <img src="https://tile.openweathermap.org/map/precipitation_new/6/30/30.png?appid=3ec69ef070cbc850536902e5b6c5add2" alt="">
+        </div> -->
+        
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+        <script>
+            const apiKey = "3ec69ef070cbc850536902e5b6c5add2";
+            const weatherApiUrl = "https://api.openweathermap.org/data/2.5/weather?units=Metric";
+            const geoApiUrl = "http://api.openweathermap.org/geo/1.0/direct?limit=1";
+            const weatherIconUrl = "https://openweathermap.org/payload/api/media/file/";
+            const mapLayers = {
+                precipitation: `https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${apiKey}`,
+                clouds: `https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${apiKey}`,
+                pressure: `https://tile.openweathermap.org/map/pressure_new/{z}/{x}/{y}.png?appid=${apiKey}`,
+                windSpeed: `https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${apiKey}`,
+                temp: `https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${apiKey}`,
+            };
+            let map = null; // Store map instance globally
+            let weatherLayer = null;
+            let lat, lon;
+
+            async function getLatLonFromCity() {
+                /* returns the latitude and longitude for a city from the cityInput input field */
+                const city = document.querySelector('#cityInput').value;
+                const response = await fetch(`${geoApiUrl}&q=${city}&appid=${apiKey}`);
+                const data = await response.json();
+                return { lat: data[0].lat, lon: data[0].lon };
+            }
+
+            async function getWeather(useLocation) {                
+                if (useLocation) {
+                    const position = await new Promise((resolve) => {
+                        navigator.geolocation.getCurrentPosition(resolve);
+                    });
+                    lat = position.coords.latitude;
+                    lon = position.coords.longitude;
+ 
+                } else {
+                   const coords = await getLatLonFromCity();
+                    lat = coords.lat;
+                    lon = coords.lon;
+                }
+
+                const response = await fetch(`${weatherApiUrl}&lat=${lat}&lon=${lon}&appid=${apiKey}`);
+                return await response.json();
+            }
+
+            async function updateStats(useLoction) {
+                const weatherData = await getWeather(useLoction);
+                const weatherIconCode = weatherData.weather[0].icon;
+
+                document.querySelector('#cityName').textContent = weatherData.name;
+                document.querySelector('#weatherIcon').src = `${weatherIconUrl}${weatherIconCode}.png`;
+                document.querySelector('#weatherDesc').textContent = weatherData.weather[0].description;
+                document.querySelector('#temp').textContent = `${weatherData.main.temp}°C`;
+                document.querySelector('#feelsLike').textContent = `Feels like ${weatherData.main.feels_like}°C`;
+                document.querySelector('#wind').textContent = `${weatherData.wind.speed} m/s ${weatherData.wind.deg}°`;
+                document.querySelector('#humidity').textContent = `${weatherData.main.humidity}%`;
+                document.querySelector('#visibility').textContent = `${weatherData.visibility / 1000}Km`;
+                document.querySelector('#pressure').textContent = `${weatherData.main.pressure} hPa`;
+                document.querySelector('#sunrise').textContent = `Sunrise: ${new Date(weatherData.sys.sunrise * 1000).toLocaleTimeString()}`;
+                document.querySelector('#sunset').textContent = `Sunset: ${new Date(weatherData.sys.sunset * 1000).toLocaleTimeString()}`;
+                
+                weatherMap();
+            }
+
+            async function weatherMap() {
+                const layerOption = document.querySelector("#layerSelect").value;
+                const useLayer = mapLayers[layerOption];
+                
+                // If map doesn't exist, create it
+                if (!map) {
+                    map = L.map("map").setView([lat, lon], 6);
+
+                    // Base map (OpenStreetMap)
+                    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                        attribution: "&copy; OpenStreetMap contributors"
+                    }).addTo(map);
+                } else {
+                    // If map exists, just update the view
+                    map.setView([lat, lon], 6);
+                }
+                
+                // Remove existing weather layer if it exists
+                if (weatherLayer) {
+                    map.removeLayer(weatherLayer);
+                }
+                
+                // Add new weather layer
+                weatherLayer = L.tileLayer(useLayer, {
+                    attribution: "&copy; OpenWeatherMap",
+                }).addTo(map);
+            }
+
+            document.querySelector('#search').addEventListener('click', () => updateStats(false));
+            document.querySelector('#getLocation').addEventListener('click', () => updateStats(true));
+            document.querySelector('#layerSelect').addEventListener('change', weatherMap);
+
+        </script>
+    </body>
+</html>
+
+
+
+<!--
+TODO:
+    - Weeks forecast
+    - CSS
+    - ngrams and popovers for selecting city
+-->
