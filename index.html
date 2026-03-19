@@ -11,6 +11,7 @@
 
 
     <body>
+        <!-- Search bar and buttons -->
         <div class="card">
             <div class="search">
                 <input id="cityInput" type="text" placeholder="Search for a city">
@@ -19,6 +20,7 @@
             </div>
         </div>
 
+        <!-- main weather & city name -->
         <div class="weather">
             <div class="weather-header">
                 <h1 id="cityName">City</h1>
@@ -26,6 +28,7 @@
                 <h2 id="weatherDesc">Clear</h2>
             </div>
 
+            <!-- extra weather stats -->
             <div class="stats-grid">
                 <div class="stat-card"><span class="label">Temperature</span><span id="temp">22°C</span></div>
                 <div class="stat-card"><span class="label">Feels Like</span><span id="feelsLike">19°C</span></div>
@@ -38,6 +41,7 @@
             </div>
         </div>
 
+        <!-- dropdown menu for choosing map layer -->
         <div class="layerDD">
             <label for="layerSelect">Choose a map layer:</label>
 
@@ -50,15 +54,13 @@
             </select>
         </div>
 
+        <!-- placeholder for the map -->
         <div id="map"></div>
 
-
-<!--         <div class="weatherMap">
-            <img src="https://tile.openweathermap.org/map/precipitation_new/6/30/30.png?appid=3ec69ef070cbc850536902e5b6c5add2" alt="">
-        </div> -->
-        
+        <!-- essential js for the map to work -->
         <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
+        <!-- handling updating location, weather stats, map and map layers -->
         <script>
             const apiKey = "3ec69ef070cbc850536902e5b6c5add2";
             const weatherApiUrl = "https://api.openweathermap.org/data/2.5/weather?units=Metric";
@@ -88,6 +90,7 @@
                     const position = await new Promise((resolve) => {
                         navigator.geolocation.getCurrentPosition(resolve);
                     });
+                    
                     lat = position.coords.latitude;
                     lon = position.coords.longitude;
  
@@ -163,4 +166,9 @@ TODO:
     - Weeks forecast
     - CSS
     - ngrams and popovers for selecting city
+    - click on map for location
+    - lcoal storage for recent searches
+    - templates for "logon" screan
+    - saved cities and favorite cities
+    - compare cities side by side
 -->
